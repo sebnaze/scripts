@@ -327,9 +327,10 @@ if [ ! -f $PRD/connectivity/predwi.mif ]; then
   echo "generate dwi mif file"
   echo "if asked, please select a series of images by typing a number"
   mrconvert $PRD/data/DWI/ $PRD/connectivity/predwi_"$i_im".mif \
-            -export_pe_table $PRD/connectivity/pe_table \
+            -fslgrad $PRD/connectivity/bvecs $PRD/connectivity/bvals \
             -export_grad_mrtrix $PRD/connectivity/bvecs_bvals_init \
             -datatype float32 -stride 0,0,0,1 -force -nthreads "$NB_THREADS"  
+            #-export_pe_table $PRD/connectivity/pe_table \ # commented as phase encoding not always available from nifti file 
   echo "Do you want to add another image serie (different phase encoding)? [y, n]"
   read select_images
   while [ "$select_images" != "y" ] && [ "$select_images" != "n" ]; do
@@ -340,7 +341,7 @@ if [ ! -f $PRD/connectivity/predwi.mif ]; then
   while [ "$select_images" == "y" ]; do
     i_im=$(($i_im + 1))
     mrconvert $PRD/data/DWI/ $PRD/connectivity/predwi_"$i_im".mif \
-              -export_pe_table $PRD/connectivity/pe_table \
+              #-export_pe_table $PRD/connectivity/pe_table \
               -export_grad_mrtrix $PRD/connectivity/bvecs_bvals_init \
               -datatype float32 -stride 0,0,0,1 -force -nthreads "$NB_THREADS"
     mrcat $PRD/connectivity/predwi.mif $PRD/connectivity/predwi_"$i_im".mif \
@@ -353,13 +354,14 @@ if [ ! -f $PRD/connectivity/predwi.mif ]; then
     done
   done
   mrinfo $PRD/connectivity/predwi.mif \
-        -export_grad_mrtrix $PRD/connectivity/bvecs_bvals_init \
-        -export_pe_table $PRD/connectivity/pe_table -force 
-fi
-if [ "$view_step" = 1 -a "$CHECK" = "yes" ] || [ "$CHECK" = "force" ] && [ -n "$DISPLAY" ]; then
-  view_step=0
-  echo "check predwi_*.mif files"
-  mrview $PRD/connectivity/predwi_*.mif
+        -export_grad_mrtrix $PRD/connectivity/bvecs_bvals_init 
+        #-export_pe_table $PRD/connectivity/pe_table -force 
+
+  if [ "$view_step" = 1 -a "$CHECK" = "yes" ] || [ "$CHECK" = "force" ] && [ -n "$DISPLAY" ]; then
+    view_step=0
+    echo "check predwi_*.mif files"
+    mrview $PRD/connectivity/predwi_*.mif
+  fi
 fi
 
 # denoising the volumes
@@ -406,6 +408,7 @@ if [ ! -f $PRD/connectivity/predwi_denoised_preproc.mif ]; then
     echo "no topup/eddy applied"
     mrconvert $PRD/connectivity/predwi_denoised.mif \
               $PRD/connectivity/predwi_denoised_preproc.mif \
+              -fslgrad $PRD/connectivity/bvecs $PRD/connectivity/bvals \
               -export_grad_mrtrix $PRD/connectivity/bvecs_bvals_final \
               -force -nthreads "$NB_THREADS"
   fi
@@ -557,9 +560,9 @@ if [ ! -f $PRD/connectivity/brain.nii.gz ]; then
   # mrconvert $FS/$SUBJ_ID/mri/brain.mgz $PRD/connectivity/brain.nii.gz \
   #           -datatype float32 -stride -1,+2,+3,+4 -force -nthreads "$NB_THREADS" 
   # instead we use the pure brain from aparc+aseg:
-    echo "generating masked brain in FSL orientation"
+  echo "generating masked brain in FSL orientation"
   mri_binarize --i $FS/$SUBJ_ID/mri/aparc+aseg.mgz \
-               --o $FS/$SUBJ_ID/mri/aparc+aseg_mask.mgz--min 0.5 --dilate 1 
+               --o $FS/$SUBJ_ID/mri/aparc+aseg_mask.mgz --min 0.5 --dilate 1 
   mri_mask $FS/$SUBJ_ID/mri/brain.mgz $FS/$SUBJ_ID/mri/aparc+aseg_mask.mgz \
            $FS/$SUBJ_ID/mri/brain_masked.mgz
   mrconvert $FS/$SUBJ_ID/mri/brain_masked.mgz $PRD/connectivity/brain.nii.gz \
@@ -669,7 +672,9 @@ if [ "$ACT" = "yes" ] && [ ! -f $PRD/connectivity/act.mif ]; then
   echo "prepare files for act"
   view_step=1
   5ttgen fsl $PRD/connectivity/brain_2_diff.nii.gz $PRD/connectivity/act.mif \
-         -premasked -force  -nthreads "$NB_THREADS"
+         -force  -nthreads "$NB_THREADS" # -premasked
+  #5ttgen freesurfer $PRD/connectivity/brain_2_diff.nii.gz $PRD/connectivity/act.mif \
+  #       -force  -nthreads "$NB_THREADS" 
   5tt2vis $PRD/connectivity/act.mif $PRD/connectivity/act_vis.mif -force \
         -nthreads "$NB_THREADS"
 fi
@@ -789,7 +794,7 @@ if [ ! -f $PRD/connectivity/whole_brain.tck ]; then
       # TODO: min length check andreas paper
       tckgen $PRD/connectivity/wm_CSD"$lmax".mif \
              $PRD/connectivity/whole_brain.tck \
-             -seed_gmwmi $PRD/connectivity/gmwmi_mask.mif 
+             -seed_gmwmi $PRD/connectivity/gmwmi_mask.mif \ 
              -act $PRD/connectivity/act.mif -select "$NUMBER_TRACKS" \
              -seed_unidirectional -crop_at_gmwmi -backtrack \
              -minlength 4 -maxlength 250 -step "$stepsize" -angle "$angle" \
@@ -1030,7 +1035,7 @@ if [ -n "$K_LIST" ]; then
     fi
     if [ ! -f $PRD/$SUBJ_ID/region_mapping_"$curr_K".txt ]; then
       echo "generate region mapping for subparcellation "$curr_K""
-      python region_mapping_other_parcellations.py
+      python2.7 region_mapping_other_parcellations.py
     fi
     if [ ! -f $PRD/connectivity/aparcaseg_2_diff_"$curr_K".mif ]; then
       mrconvert $PRD/connectivity/aparcaseg_2_diff_"$curr_K".nii.gz \
@@ -1071,7 +1076,7 @@ if [ -n "$K_LIST" ]; then
     fi
     if [ ! -f $PRD/$SUBJ_ID/connectivity_"$curr_K"/weights.txt ]; then
       echo "generate files for TVB subparcellation "$curr_K""
-      python compute_connectivity_sub.py $PRD/connectivity/weights_"$curr_K".csv $PRD/connectivity/tract_lengths_"$curr_K".csv $PRD/$SUBJ_ID/connectivity_"$curr_K"/weights.txt $PRD/$SUBJ_ID/connectivity_"$curr_K"/tract_lengths.txt
+      python2.7 compute_connectivity_sub.py $PRD/connectivity/weights_"$curr_K".csv $PRD/connectivity/tract_lengths_"$curr_K".csv $PRD/$SUBJ_ID/connectivity_"$curr_K"/weights.txt $PRD/$SUBJ_ID/connectivity_"$curr_K"/tract_lengths.txt
     fi
     pushd . > /dev/null
     cd $PRD/$SUBJ_ID/connectivity_"$curr_K" > /dev/null
