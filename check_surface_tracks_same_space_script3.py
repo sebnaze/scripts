@@ -7,7 +7,6 @@ from mpl_toolkits.mplot3d import Axes3D
 
 """ check visually if tracts and cortical surface are in the same space. """
 
-#PRD='/usr/local/freesurfer/subjects/R008572786'
 PRD = '/media/naze/backup_ext4/2017_Q4/100307'
 
 ################################################################

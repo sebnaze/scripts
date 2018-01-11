@@ -24,12 +24,12 @@
 # the root directory for files 
 # this is where all data and processed data are
 # we advice to also put this config file in this directory
-export PRD=/media/naze/backup_ext4/2017_Q4/R008572786
+export PRD=/media/naze/backup_ext4/2017_Q4/100307
 
 # subject name
 # this will determine the name of your subject
 # in brainvisa and in the final directory
-export SUBJ_ID=R008572786
+export SUBJ_ID=100307
 
 # Matlab Runtime Compiler path
 # if you have matlab, do mcrinstaller at the matlab prompt
