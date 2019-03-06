@@ -24,18 +24,19 @@
 # the root directory for files 
 # this is where all data and processed data are
 # we advice to also put this config file in this directory
-export PRD=/media/naze/backup_ext4/2017_Q4/100307
+#export PRD=/media/naze/backup_ext4/2017_Q4/100307
+export PRD=/usr/local/freesurfer/subjects/copy_fsaverage5
 
 # subject name
 # this will determine the name of your subject
 # in brainvisa and in the final directory
-export SUBJ_ID=100307
+export SUBJ_ID=copy_fsaverage5
 
 # Matlab Runtime Compiler path
 # if you have matlab, do mcrinstaller at the matlab prompt
 # to find the location of the MCR
 # alternatively you can uncomment the following line and comment the MCR line
-export MATLAB=/usr/local/MATLAB/R2016a/bin/matlab
+export MATLAB=/usr/local/MATLAB/R2017b/bin/matlab
 # export MATLAB=$(which matlab)
 # if you don't have matlab, download the MCR (linux 64 bits) here: 
 # http://www.mathworks.com/products/compiler/mcr/index.html

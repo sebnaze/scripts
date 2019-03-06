@@ -45,7 +45,7 @@ if [ ! -f $PRD/connectivity/whole_brain.tck ]; then
       tckgen $PRD/connectivity/wm_CSD"$lmax".mif \
              $PRD/connectivity/whole_brain_iFOD2_ACT_minlength04_angle"$angle"_cutoff006_5M.tck \
              -seed_dynamic $PRD/connectivity/wm_CSD$lmax.mif \
-             -act $PRD/connectivity/act.mif -select 5000000 -seeds 5000000 \
+             -act $PRD/connectivity/act.mif -select 5000000 -seeds 10000000 \
              -crop_at_gmwmi -backtrack -minlength 4 -maxlength 250 \
              -step "$stepsize" -angle "$angle" -cutoff 0.06 -force \
              -nthreads "$NB_THREADS"
